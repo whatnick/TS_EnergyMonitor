@@ -47,9 +47,20 @@ bool shouldSaveConfig = false;
 Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 //Maximum value of ADS
 #define ADC_COUNTS 32768
-#define PHASECAL 1.7
-#define VCAL 0.65
-#define ICAL 0.02
+#define PHASECAL 1.0
+#define VCAL 0.773392
+#define ICAL -0.25674048
+#define PCAL -1.14
+#define POWEROFF -33.0 //Power offset to deal with phase issues
+
+/*
+#define ADC_COUNTS 32768
+#define PHASECAL 1.0
+#define VCAL 0.773392
+#define ICAL -0.25674048
+#define PCAL -1.14
+#define POWEROFF -33.0 //Power offset to deal with phase issues
+*/
 
 const char* server = "api.thingspeak.com";
 // Sign up on thingspeak and get WRITE API KEY.
@@ -200,8 +211,8 @@ void calcVI(unsigned int crossings, unsigned int timeout)
 
   while(st==false)                                   //the while loop...
   {
-     startV = ads.readADC_Differential_2_3();                    //using the voltage waveform
-     if ((abs(startV) < (ADC_COUNTS*0.55)) && (abs(startV) > (ADC_COUNTS*0.45))) st=true;  //check its within range
+     startV = ads.readADC_Differential_0_1();                    //using the voltage waveform
+     if ((abs(startV) < (ADC_COUNTS*0.1)) && (abs(startV) > (-ADC_COUNTS*0.1))) st=true;  //check its within range
      if ((millis()-start)>timeout) st = true;
   }
   
@@ -218,8 +229,9 @@ void calcVI(unsigned int crossings, unsigned int timeout)
     //-----------------------------------------------------------------------------
     // A) Read in raw voltage and current samples
     //-----------------------------------------------------------------------------
-    sampleV = ads.readADC_Differential_2_3();                 //Read in raw voltage signal
-    sampleI = ads.readADC_Differential_0_1();                 //Read in raw current signal
+    sampleV = ads.readADC_Differential_0_1();                 //Read in raw current signal
+    sampleI = ads.readADC_Differential_2_3();                 //Read in raw voltage signal
+    
 
     //-----------------------------------------------------------------------------
     // B) Apply digital low pass filters to extract the 2.5 V or 1.65 V dc offset,
@@ -280,8 +292,18 @@ void calcVI(unsigned int crossings, unsigned int timeout)
 
   //Calculation power values
   realPower = V_RATIO * I_RATIO * sumP / numberOfSamples;
+  realPower = realPower-POWEROFF;
+  
   apparentPower = Vrms * Irms;
-  powerFactor=realPower / apparentPower;
+  //If real power is too low power factor is unreliable (set to zero)
+  if(abs(realPower) > 5 )
+  {
+    powerFactor=realPower / (apparentPower*PCAL);
+  }
+  else
+  {
+    powerFactor = 0.0;
+  }
 
   //Reset accumulators
   sumV = 0;
@@ -326,8 +348,14 @@ void setup() {
 
   //Read previous config
   readTSConfig();
-  // We start by connecting to a WiFi network
+  
+  //Scan and populate all ADC's
+  scanADC();
 
+  //Assume ADC 1 is primary CT, rest are supplementary
+  ads.setGain(GAIN_ONE);        // 1x gain   +/- 4.096V  1 bit = 0.125mV
+  ads.begin();
+  // Connect to the Wifi Network
   //Serial.println();
   //Serial.println();
   //Serial.print("Connecting to ");
@@ -364,13 +392,6 @@ void setup() {
   //Serial.println("IP address: ");
   //Serial.println(WiFi.localIP());
   Wire.begin();
-
-  //Scan and populate all ADC's
-  scanADC();
-
-  //Assume ADC 1 is primary CT, rest are supplementary
-  ads.setGain(GAIN_ONE);        // 1x gain   +/- 4.096V  1 bit = 0.125mV
-  ads.begin();
   
    // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
