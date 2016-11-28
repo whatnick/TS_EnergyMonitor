@@ -1,5 +1,8 @@
 # TS_EnergyMonitor
-Upload Energy Monitor data to Thingspeak
+Upload Energy Monitor data to Thingspeak. Corresponding hardware is available via Tindie.
+* Through Hole - https://www.tindie.com/products/whatnick/nodemcu-energy-monitor-pcbkit/
+* SMD - https://www.tindie.com/products/whatnick/nodemcu-energy-monitor-smd/
+* ADS1115/ADS1015 Featherwing - https://www.tindie.com/products/whatnick/energy-monitor-featherwing/
 
 I have dialled in some calibration parameters that work for me in RealPower mode in the attached file please use them as a starting point. The procedure for calibration is summarised below:
 
