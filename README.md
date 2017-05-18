@@ -19,5 +19,6 @@ I have dialled in some calibration parameters that work for me in RealPower mode
 
 6. With the lamp on have a look at power factor . It possibly exceeds one, set reading as the **PCAL** value to bring the maximum power factor down to one. PCAL may also need the offset / scale treatment given to the power, not tested yet.
 
-The meter should now be resonably accurate. I would appreciate if you gave me any feedbacks and refinements of this process from your personal experience. I will also record a corresponding video.
+The meter should now be resonably accurate. I would appreciate if you gave me any feedbacks and refinements of this process from your personal experience. A calibration demo video is available here:
+[![Calibration demo](https://img.youtube.com/vi/7oyJ2BWuaI0/0.jpg)](https://www.youtube.com/watch?v=7oyJ2BWuaI0)
 
